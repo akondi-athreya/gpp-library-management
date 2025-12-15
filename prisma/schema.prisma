@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum BookStatus {
+  AVAILABLE
+  BORROWED
+  RESERVED
+  MAINTENANCE
+}
+
+enum MemberStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum TransactionStatus {
+  ACTIVE
+  RETURNED
+  OVERDUE
+}
+
+model Book {
+  id               Int        @id @default(autoincrement())
+  isbn             String     @unique
+  title            String
+  author            String
+  category          String
+
+  status            BookStatus @default(AVAILABLE)
+
+  total_copies      Int
+  available_copies  Int
+
+  transactions      Transaction[]
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model Member {
+  id                Int          @id @default(autoincrement())
+  name              String
+  email             String       @unique
+  membership_number String       @unique
+
+  status             MemberStatus @default(ACTIVE)
+
+  transactions       Transaction[]
+  fines              Fine[]
+
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+model Transaction {
+  id           Int               @id @default(autoincrement())
+
+  bookId       Int
+  memberId     Int
+
+  borrowed_at  DateTime          @default(now())
+  due_date     DateTime
+  returned_at  DateTime?
+
+  status       TransactionStatus @default(ACTIVE)
+
+  book         Book              @relation(fields: [bookId], references: [id])
+  member       Member            @relation(fields: [memberId], references: [id])
+
+  fine         Fine?
+
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([bookId])
+  @@index([memberId])
+}
+
+model Fine {
+  id             Int       @id @default(autoincrement())
+
+  memberId       Int
+  transactionId  Int       @unique
+
+  amount         Decimal   @db.Decimal(10, 2)
+  paid_at        DateTime?
+
+  member         Member     @relation(fields: [memberId], references: [id])
+  transaction    Transaction @relation(fields: [transactionId], references: [id])
+
+  createdAt      DateTime   @default(now())
+}
