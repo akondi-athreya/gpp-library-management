@@ -1,0 +1,392 @@
+### Library Management System API Tests
+### Use VS Code REST Client extension to run these tests
+
+@baseUrl = http://localhost:3000
+
+### ============================================
+### HEALTH CHECK
+### ============================================
+
+### Health Check
+GET {{baseUrl}}/health
+
+### ============================================
+### BOOKS - CRUD OPERATIONS
+### ============================================
+
+### 1. Create Book - Clean Code
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "isbn": "978-0-13-468599-1",
+  "title": "Clean Code: A Handbook of Agile Software Craftsmanship",
+  "author": "Robert C. Martin",
+  "category": "Technology",
+  "total_copies": 5
+}
+
+### 2. Create Book - The Great Gatsby
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "isbn": "978-0-74-327356-5",
+  "title": "The Great Gatsby",
+  "author": "F. Scott Fitzgerald",
+  "category": "Fiction",
+  "total_copies": 3
+}
+
+### 3. Create Book - Design Patterns
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "isbn": "978-0-20-163361-0",
+  "title": "Design Patterns: Elements of Reusable Object-Oriented Software",
+  "author": "Gang of Four",
+  "category": "Technology",
+  "total_copies": 4
+}
+
+### 4. Create Book - To Kill a Mockingbird
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "isbn": "978-0-06-112008-4",
+  "title": "To Kill a Mockingbird",
+  "author": "Harper Lee",
+  "category": "Fiction",
+  "total_copies": 2
+}
+
+### 5. Get All Books
+GET {{baseUrl}}/books
+
+### 6. Get Available Books Only
+GET {{baseUrl}}/books/available
+
+### 7. Get Book by ID (Replace :id with actual book ID)
+GET {{baseUrl}}/books/1
+
+### 8. Update Book (Replace :id with actual book ID)
+PUT {{baseUrl}}/books/1
+Content-Type: application/json
+
+{
+  "total_copies": 6,
+  "category": "Software Engineering"
+}
+
+### 9. Delete Book (Replace :id - Only works if no active transactions)
+DELETE {{baseUrl}}/books/999
+
+### ============================================
+### MEMBERS - CRUD OPERATIONS
+### ============================================
+
+### 1. Create Member - Alice Johnson
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Alice Johnson",
+  "email": "alice.johnson@example.com",
+  "membership_number": "LIB2024001"
+}
+
+### 2. Create Member - Bob Smith
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Bob Smith",
+  "email": "bob.smith@example.com",
+  "membership_number": "LIB2024002"
+}
+
+### 3. Create Member - Carol Davis
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Carol Davis",
+  "email": "carol.davis@example.com",
+  "membership_number": "LIB2024003"
+}
+
+### 4. Get All Members
+GET {{baseUrl}}/members
+
+### 5. Get Member by ID (Replace :id with actual member ID)
+GET {{baseUrl}}/members/1
+
+### 6. Update Member (Replace :id with actual member ID)
+PUT {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "name": "Alice Johnson-Williams",
+  "email": "alice.williams@example.com"
+}
+
+### 7. Get Books Borrowed by Member (Replace :id with actual member ID)
+GET {{baseUrl}}/members/1/borrowed
+
+### 8. Delete Member (Replace :id - Only works if no active transactions)
+DELETE {{baseUrl}}/members/999
+
+### ============================================
+### TRANSACTIONS - BORROWING AND RETURNING
+### ============================================
+
+### 1. Borrow Book - Member 1 borrows Book 1
+POST {{baseUrl}}/transactions/borrow
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "bookId": 1
+}
+
+### 2. Borrow Book - Member 1 borrows Book 2
+POST {{baseUrl}}/transactions/borrow
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "bookId": 2
+}
+
+### 3. Borrow Book - Member 1 borrows Book 3
+POST {{baseUrl}}/transactions/borrow
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "bookId": 3
+}
+
+### 4. Borrow Book - Member 2 borrows Book 4
+POST {{baseUrl}}/transactions/borrow
+Content-Type: application/json
+
+{
+  "memberId": 2,
+  "bookId": 4
+}
+
+### 5. Try to Borrow 4th Book (Should Fail - Max 3 books)
+POST {{baseUrl}}/transactions/borrow
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "bookId": 4
+}
+
+### 6. Return Book - Transaction 1 (Replace :id with actual transaction ID)
+POST {{baseUrl}}/transactions/1/return
+
+### 7. Return Book - Transaction 2 (Replace :id with actual transaction ID)
+POST {{baseUrl}}/transactions/2/return
+
+### 8. Get Overdue Transactions
+GET {{baseUrl}}/transactions/overdue
+
+### ============================================
+### FINES - PAYMENT AND MANAGEMENT
+### ============================================
+
+### 1. Get All Fines
+GET {{baseUrl}}/fines
+
+### 2. Get Unpaid Fines (Query parameter)
+GET {{baseUrl}}/fines?paid=false
+
+### 3. Get Fines by Member (Query parameter - Replace memberId)
+GET {{baseUrl}}/fines?memberId=1
+
+### 4. Get Fine by ID (Replace :id with actual fine ID)
+GET {{baseUrl}}/fines/1
+
+### 5. Pay Fine (Replace :id with actual fine ID)
+POST {{baseUrl}}/fines/1/pay
+
+### ============================================
+### BUSINESS RULE TESTS
+### ============================================
+
+### Test 1: Try to borrow with unpaid fines (Should fail)
+# First, ensure member 1 has an overdue book that creates a fine
+# Then try to borrow another book
+POST {{baseUrl}}/transactions/borrow
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "bookId": 1
+}
+
+### Test 2: Attempt to borrow more than 3 books (Should fail)
+# Member 1 already has 3 books, this should be rejected
+POST {{baseUrl}}/transactions/borrow
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "bookId": 4
+}
+
+### Test 3: Try to borrow when suspended (Should fail)
+# If member has 3+ overdue books, they should be suspended
+POST {{baseUrl}}/transactions/borrow
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "bookId": 1
+}
+
+### Test 4: Try to borrow unavailable book (Should fail)
+POST {{baseUrl}}/transactions/borrow
+Content-Type: application/json
+
+{
+  "memberId": 2,
+  "bookId": 999
+}
+
+### Test 5: Duplicate ISBN (Should fail)
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "isbn": "978-0-13-468599-1",
+  "title": "Duplicate Book",
+  "author": "Test Author",
+  "category": "Test",
+  "total_copies": 1
+}
+
+### Test 6: Duplicate Email (Should fail)
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Duplicate User",
+  "email": "alice.johnson@example.com",
+  "membership_number": "LIB2024999"
+}
+
+### Test 7: Duplicate Membership Number (Should fail)
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Duplicate User",
+  "email": "duplicate@example.com",
+  "membership_number": "LIB2024001"
+}
+
+### ============================================
+### COMPLETE WORKFLOW TEST
+### ============================================
+
+### Step 1: Create a new book
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "isbn": "978-1-23-456789-0",
+  "title": "Test Workflow Book",
+  "author": "Test Author",
+  "category": "Test",
+  "total_copies": 1
+}
+
+### Step 2: Create a new member
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Test Workflow User",
+  "email": "test.workflow@example.com",
+  "membership_number": "LIBTEST001"
+}
+
+### Step 3: Member borrows the book
+POST {{baseUrl}}/transactions/borrow
+Content-Type: application/json
+
+{
+  "memberId": 4,
+  "bookId": 5
+}
+
+### Step 4: Check member's borrowed books
+GET {{baseUrl}}/members/4/borrowed
+
+### Step 5: Check book availability (should show as borrowed/unavailable)
+GET {{baseUrl}}/books/5
+
+### Step 6: Return the book on time (no fine)
+POST {{baseUrl}}/transactions/5/return
+
+### Step 7: Verify book is available again
+GET {{baseUrl}}/books/5
+
+### ============================================
+### ERROR HANDLING TESTS
+### ============================================
+
+### Invalid Book ID
+GET {{baseUrl}}/books/99999
+
+### Invalid Member ID
+GET {{baseUrl}}/members/99999
+
+### Invalid Transaction ID
+POST {{baseUrl}}/transactions/99999/return
+
+### Invalid Fine ID
+POST {{baseUrl}}/fines/99999/pay
+
+### Missing Required Fields - Book
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "title": "Incomplete Book"
+}
+
+### Missing Required Fields - Member
+POST {{baseUrl}}/members
+Content-Type: application/json
+
+{
+  "name": "Incomplete Member"
+}
+
+### Invalid Borrow Request (Missing bookId)
+POST {{baseUrl}}/transactions/borrow
+Content-Type: application/json
+
+{
+  "memberId": 1
+}
+
+### ============================================
+### NOTES FOR TESTING
+### ============================================
+# 
+# 1. Replace placeholder IDs (like :id, 1, 2, etc.) with actual IDs from your database
+# 2. Run tests in sequence to build up test data
+# 3. Some tests are designed to fail (e.g., business rule violations)
+# 4. To test overdue scenarios, you may need to manually adjust due_date in the database
+# 5. Check the response status codes and messages for each request
+# 6. Use GET requests to verify state changes after POST/PUT/DELETE operations
+#
+### ============================================
