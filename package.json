@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "node src/app.js",
-    "test": "node test/api-test.js"
+    "test": "node test/api-test.js",
+    "build": "npx prisma generate",
+    "deploy": "npx prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
