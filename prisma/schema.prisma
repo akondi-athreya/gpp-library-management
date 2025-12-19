@@ -76,7 +76,8 @@ model Transaction {
 
   status       TransactionStatus @default(ACTIVE)
 
-  book         Book              @relation(fields: [bookId], references: [id])
+  // Cascade so a book removal cleans up its transactions
+  book         Book              @relation(fields: [bookId], references: [id], onDelete: Cascade)
   member       Member            @relation(fields: [memberId], references: [id])
 
   fine         Fine?
@@ -98,7 +99,8 @@ model Fine {
   paid_at        DateTime?
 
   member         Member     @relation(fields: [memberId], references: [id])
-  transaction    Transaction @relation(fields: [transactionId], references: [id])
+  // Cascade so deleting a transaction (e.g., via book delete) cleans related fines
+  transaction    Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 
   createdAt      DateTime   @default(now())
 }

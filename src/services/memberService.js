@@ -117,42 +117,36 @@ async function updateMember(id, data) {
 
 // Delete member
 async function deleteMember(id) {
+    const memberId = parseInt(id);
+
     const member = await prisma.member.findUnique({
-        where: { id: parseInt(id) },
-        include: {
-            transactions: {
-                where: {
-                    status: 'ACTIVE'
-                }
-            },
-            fines: {
-                where: {
-                    paid_at: null
-                }
-            }
-        }
+        where: { id: memberId }
     });
 
     if (!member) {
         throw { statusCode: 404, message: 'Member not found' };
     }
 
-    if (member.transactions.length > 0) {
-        throw { 
-            statusCode: 400, 
-            message: 'Cannot delete member with active transactions' 
+    // Block deletion if any transactions exist (active, overdue, or returned) to avoid FK errors
+    const transactionCount = await prisma.transaction.count({ where: { memberId } });
+    if (transactionCount > 0) {
+        throw {
+            statusCode: 400,
+            message: 'Cannot delete member with transaction history. Consider archiving instead.'
         };
     }
 
-    if (member.fines.length > 0) {
-        throw { 
-            statusCode: 400, 
-            message: 'Cannot delete member with unpaid fines' 
+    // Block deletion if any fines (paid or unpaid) exist to avoid FK errors and preserve history
+    const fineCount = await prisma.fine.count({ where: { memberId } });
+    if (fineCount > 0) {
+        throw {
+            statusCode: 400,
+            message: 'Cannot delete member with fines history. Consider archiving instead.'
         };
     }
 
     return await prisma.member.delete({
-        where: { id: parseInt(id) }
+        where: { id: memberId }
     });
 }
 
