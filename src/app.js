@@ -18,6 +18,11 @@ app.use('/members', memberRoutes);
 app.use('/transactions', transactionRoutes);
 app.use('/fines', fineRoutes);
 
+// Root endpoint - Welcome page
+app.get('/', (req, res) => {
+    res.send(`<center><h1>Welcome to the Library Management API System</h1></center>`);
+});
+
 // Database health check endpoint
 app.get('/db-health', checkDatabaseConnection);
 
